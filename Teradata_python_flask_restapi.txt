@@ -1,0 +1,30 @@
+from flask import Flask, url_for, request, render_template, Response, jsonify
+import teradata
+
+app = Flask(__name__)
+
+
+# routes and methods
+@app.route('/')
+def index():
+    return "Welcome to EDW REST API"
+
+
+@app.route('/<qry>', methods=['GET'])
+def show_qry_result(qry):
+    data = []
+    print("SQL ISSUED : %s" % qry)
+    print("attempting TD connection")
+    udaExec = teradata.UdaExec(appName="Restapp", version="1.0", logConsole=False)
+    session = udaExec.connect(method="odbc", system="server.com", username="xxxx", password="xxxxx",
+                              driver="Teradata Database ODBC Driver 16.20")
+    print("connection done. querying now...")
+
+    for row in session.execute(qry):
+        data.append(str(row))
+
+    return jsonify(results=data)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
